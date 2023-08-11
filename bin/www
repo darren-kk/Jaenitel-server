@@ -1,6 +1,6 @@
 const http = require("http");
 const debug = require("debug")("dataface-server:server");
-const CONFIG = require("../src/constants/config");
+const CONFIG = require("../src/configs/index");
 const app = require("../app");
 
 const port = normalizePort(CONFIG.PORT || "3000");
