@@ -1,5 +1,5 @@
 const http = require("http");
-const debug = require("debug")("dataface-server:server");
+const debug = require("debug")("jaenitel-server:server");
 const CONFIG = require("../src/configs/index");
 const app = require("../app");
 
