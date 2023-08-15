@@ -40,3 +40,15 @@ exports.signup = async function (req, res, next) {
     next(error);
   }
 };
+
+exports.logout = async function (req, res, next) {
+  try {
+    res.clearCookie("AccessToken", { httpOnly: true });
+    res.json({ success: true });
+  } catch (error) {
+    error.status = 500;
+    error.message = "Internal Server Error";
+
+    next(error);
+  }
+};
