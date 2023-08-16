@@ -4,6 +4,7 @@ const Users = require("../models/User");
 
 async function validateLogin(req, res, next) {
   const { email, password } = req.body;
+
   try {
     const user = await Users.findOne({ email: email });
     const userPwd = user.password;

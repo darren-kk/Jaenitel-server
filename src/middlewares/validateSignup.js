@@ -19,6 +19,12 @@ async function validateSignup(req, res, next) {
       throw error;
     }
 
+    if (nickname.length < 2 || nickname.length > 8) {
+      const error = new Error("닉네임은 최소 2자리 이상, 8자리 이하여야 합니다.");
+      error.status = 400;
+      throw error;
+    }
+
     if (!email) {
       const error = new Error("이메일을 입력해주세요!");
       error.status = 400;
