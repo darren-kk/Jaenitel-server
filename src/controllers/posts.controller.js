@@ -27,6 +27,28 @@ exports.getPosts = async (req, res, next) => {
   }
 };
 
+exports.getPost = async (req, res, next) => {
+  const { userId, postId } = req.params;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User Not Found" });
+    }
+
+    const post = await Post.findById(postId).populate("contents");
+
+    if (!post) {
+      return res.status(404).json({ error: "Post Not Found" });
+    }
+
+    res.status(200).json({ post });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.createPost = async (req, res, next) => {
   const { userId } = req.params;
   const s3Client = getS3Client();
