@@ -14,27 +14,14 @@ const postSchema = new mongoose.Schema({
   contents: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      refPath: "ContentType",
+      refPath: "contentModel",
     },
   ],
-});
-
-postSchema.virtual("textContents", {
-  ref: "TextContent",
-  localField: "contents",
-  foreignField: "_id",
-});
-
-postSchema.virtual("imageContents", {
-  ref: "ImageContent",
-  localField: "contents",
-  foreignField: "_id",
-});
-
-postSchema.virtual("videoContents", {
-  ref: "VideoContent",
-  localField: "contents",
-  foreignField: "_id",
+  contentModel: [
+    {
+      type: String,
+    },
+  ],
 });
 
 const Post = mongoose.model("Post", postSchema);

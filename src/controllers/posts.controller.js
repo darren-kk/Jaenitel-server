@@ -8,15 +8,36 @@ const Post = require("../models/Post");
 
 const CONFIG = require("../configs/index");
 
+exports.getPosts = async (req, res, next) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User Not Found" });
+    }
+
+    const posts = await Post.find({ madeBy: user._id });
+
+    res.status(200).json({ posts });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.createPost = async (req, res, next) => {
   const { userId } = req.params;
   const s3Client = getS3Client();
   const contents = req.body.contents;
 
-  // imageUrl: `https://${CONFIG.AWS_S3_BUCKET_NAME}.s3.${CONFIG.AWS_S3_REGION}.amazonaws.com/posts/${user._id}/${imageFileName}`,
   try {
     const user = await User.findById(userId);
     const uploadPromises = [];
+
+    if (!user) {
+      return res.status(404).json({ error: "User Not Found" });
+    }
 
     for (const file of req.files) {
       const indexPattern = /\[(\d+)\]/;
@@ -73,7 +94,7 @@ exports.createPost = async (req, res, next) => {
 
     await newPost.save();
 
-    res.json({ success: true });
+    res.status(201).json({ success: true });
   } catch (error) {
     next(error);
   }
