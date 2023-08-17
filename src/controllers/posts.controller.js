@@ -18,10 +18,11 @@ exports.getPosts = async (req, res, next) => {
       return res.status(404).json({ error: "User Not Found" });
     }
 
-    const posts = await Post.find({ madeBy: user._id });
+    const posts = await Post.find({ madeBy: user._id }).populate("madeBy").populate("contents");
 
     res.status(200).json({ posts });
   } catch (error) {
+    console.log(error);
     next(error);
   }
 };
@@ -53,7 +54,7 @@ exports.createPost = async (req, res, next) => {
 
         uploadPromises.push(uploadPromise);
 
-        contents[index] = { imageContent: url };
+        contents[index] = { imageUrl: url };
       }
 
       if (file.fieldname.includes("videoContent")) {
@@ -65,22 +66,34 @@ exports.createPost = async (req, res, next) => {
 
         uploadPromises.push(uploadPromise);
 
-        contents[index] = { videoContent: url };
+        contents[index] = { videoUrl: url };
       }
     }
 
     await Promise.all(uploadPromises);
 
     const savedContents = await Promise.all(
-      contents.map((content) => {
+      contents.map(async (content) => {
         if (content.textContent) {
-          return new TextContent({ content: content.textContent });
+          const newTextContent = new TextContent({ content: content.textContent });
+
+          await newTextContent.save();
+
+          return newTextContent;
         }
-        if (content.imageContent) {
-          return new ImageContent({ content: content.imageContent });
+        if (content.imageUrl) {
+          const newImageContent = new ImageContent({ imageUrl: content.imageUrl });
+
+          await newImageContent.save();
+
+          return newImageContent;
         }
-        if (content.videoContent) {
-          return new VideoContent({ content: content.videoContent });
+        if (content.videoUrl) {
+          const newVideoContent = new VideoContent({ videoUrl: content.videoUrl });
+
+          await newVideoContent.save();
+
+          return newVideoContent;
         }
       }),
     );
@@ -90,6 +103,7 @@ exports.createPost = async (req, res, next) => {
       category: req.body.category,
       madeBy: user._id,
       contents: savedContents,
+      contentModel: ["TextContent", "ImageContent", "VideoContent"],
     });
 
     await newPost.save();
