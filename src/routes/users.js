@@ -1,8 +1,13 @@
 const express = require("express");
+const multer = require("multer");
+
 const router = express.Router();
 
-router.get("/", function (req, res, next) {
-  res.send("respond with a resource");
-});
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+const postsController = require("../controllers/posts.controller");
+
+router.post("/:userId/posts", upload.any(), postsController.createPost);
 
 module.exports = router;
