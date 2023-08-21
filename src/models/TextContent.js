@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const textContentSchema = new mongoose.Schema({
-  content: String,
+  textContent: String,
 });
 
 const TextContent = mongoose.model("TextContent", textContentSchema);

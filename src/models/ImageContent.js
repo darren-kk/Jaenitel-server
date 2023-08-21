@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const imageContentSchema = new mongoose.Schema({
-  imageUrl: String,
+  imageContent: String,
 });
 
 const ImageContent = mongoose.model("ImageContent", imageContentSchema);
