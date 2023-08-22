@@ -10,6 +10,8 @@ const postsController = require("../controllers/posts.controller");
 
 router.post("/:userId/posts", upload.any(), postsController.createPost);
 router.get("/:userId/posts", postsController.getPosts);
+
 router.get("/:userId/posts/:postId", postsController.getPost);
+router.put("/:userId/posts/:postId", upload.any(), postsController.editPost);
 
 module.exports = router;
