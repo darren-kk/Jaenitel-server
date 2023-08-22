@@ -1,4 +1,4 @@
-const { S3Client, ListObjectsV2Command, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { S3Client, ListObjectsV2Command, PutObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
 
 exports.getS3Client = () => {
   const clientConfig = {
@@ -33,4 +33,13 @@ exports.getPutObjectCommand = (bucketName, key, body, contentType = "image/png")
   });
 
   return putObjectCommand;
+};
+
+exports.getDeleteObjectCommand = (bucketName, key) => {
+  const deleteObjectCommand = new DeleteObjectCommand({
+    Bucket: bucketName,
+    Key: key,
+  });
+
+  return deleteObjectCommand;
 };
