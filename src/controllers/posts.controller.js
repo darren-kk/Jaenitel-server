@@ -1,4 +1,4 @@
-const { getS3Client, getListObjectsCommand, getPutObjectCommand } = require("../configs/s3Config");
+const { getS3Client, getDeleteObjectCommand, getPutObjectCommand } = require("../configs/s3Config");
 
 const User = require("../models/User");
 const TextContent = require("../models/TextContent");
@@ -294,6 +294,52 @@ exports.editPost = async (req, res, next) => {
     );
 
     res.status(200).json({ succes: true });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.deletePost = async (req, res, next) => {
+  const { userId, postId } = req.params;
+  const s3Client = getS3Client();
+
+  try {
+    const user = await User.findById(userId);
+    const post = await Post.findById(postId).populate("contents");
+
+    if (!user) {
+      return res.status(404).json({ error: "User Not Found" });
+    }
+
+    if (!post) {
+      return res.status(404).json({ error: "Post Not Found" });
+    }
+
+    await Promise.all(
+      post.contents.map(async (content) => {
+        if (content.textContent) {
+          await TextContent.findByIdAndDelete(content._id);
+        }
+        if (content.imageContent) {
+          const fileName = content.imageContent.split(".com/")[1];
+          const deleteCmd = getDeleteObjectCommand(CONFIG.AWS_S3_BUCKET_NAME, fileName);
+
+          await ImageContent.findByIdAndDelete(content._id);
+          await s3Client.send(deleteCmd);
+        }
+        if (content.videoContent) {
+          const fileName = content.videoContent.split(".com/")[1];
+          const deleteCmd = getDeleteObjectCommand(CONFIG.AWS_S3_BUCKET_NAME, fileName);
+
+          await VideoContent.findByIdAndDelete(content._id);
+          await s3Client.send(deleteCmd);
+        }
+      }),
+    );
+
+    await Post.findByIdAndDelete(postId);
+
+    res.status(200).json({ success: true });
   } catch (error) {
     next(error);
   }
