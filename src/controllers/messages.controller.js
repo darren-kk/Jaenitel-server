@@ -18,20 +18,34 @@ exports.getMessages = async (req, res, next) => {
       return res.status(404).json({ error: "User Not Found" });
     }
 
-    const sendedMessageIds = user.sendedMessages;
-    const receivedMessageIds = user.receivedMessages;
+    const sendedMessagesToMap = await Message.find({ sendFrom: user._id })
+      .sort("-createdDate")
+      .populate("sendTo")
+      .populate("contents");
 
-    const sendedMessages = await Promise.all(
-      sendedMessageIds.map(async (message) => {
-        return await Message.findById(message._id).populate("sendTo").populate("contents");
-      }),
-    );
+    const receivedMessagesToMap = await Message.find({ sendTo: user._id })
+      .sort("-createdDate")
+      .populate("sendFrom")
+      .populate("contents");
 
-    const receivedMessages = await Promise.all(
-      receivedMessageIds.map(async (message) => {
-        return await Message.findById(message._id).populate("contents");
-      }),
-    );
+    const sendedMessages = sendedMessagesToMap.map((message, index) => {
+      return {
+        id: message._id,
+        index: "m" + (sendedMessagesToMap.length - index),
+        content: message.contents[0],
+        nickname: message.sendTo.nickname,
+      };
+    });
+
+    const receivedMessages = receivedMessagesToMap.map((message, index) => {
+      return {
+        id: message._id,
+        index: receivedMessagesToMap.length - index,
+        content: message.contents[0],
+        nickname: message.sendFrom.nickname,
+        read: message.read,
+      };
+    });
 
     const messages = { sendedMessages, receivedMessages };
 
@@ -52,7 +66,7 @@ exports.getMessage = async (req, res, next) => {
       return res.status(404).json({ error: "User Not Found" });
     }
 
-    const message = await Message.findById(messageId).populate("sendTo").populate("contents");
+    const message = await Message.findById(messageId).populate("sendFrom").populate("sendTo").populate("contents");
 
     if (!message) {
       return res.status(404).json({ error: "Message Not Found" });
