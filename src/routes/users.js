@@ -9,14 +9,15 @@ const upload = multer({ storage: storage });
 const postsController = require("../controllers/posts.controller");
 const messageController = require("../controllers/messages.controller");
 
-router.post("/:userId/posts", upload.any(), postsController.createPost);
 router.get("/:userId/posts", postsController.getPosts);
+router.post("/:userId/posts", upload.any(), postsController.createPost);
 
 router.get("/:userId/posts/:postId", postsController.getPost);
-router.delete("/:userId/posts/:postId", postsController.deletePost);
 router.put("/:userId/posts/:postId", upload.any(), postsController.editPost);
+router.delete("/:userId/posts/:postId", postsController.deletePost);
 
 router.get("/:userId/messages", messageController.getMessages);
+router.post("/:userId/messages", upload.any(), messageController.createMessage);
 
 router.get("/:userId/messages/:messageId", messageController.getMessage);
 
