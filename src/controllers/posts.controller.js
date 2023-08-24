@@ -59,11 +59,40 @@ exports.getPost = async (req, res, next) => {
       return res.status(404).json({ error: "User Not Found" });
     }
 
-    const post = await Post.findById(postId).populate("madeBy").populate("contents");
+    const targetPost = await Post.findById(postId).populate("madeBy");
 
-    if (!post) {
+    if (!targetPost) {
       return res.status(404).json({ error: "Post Not Found" });
     }
+
+    const fetchContentFromModels = async function (contentId) {
+      const models = [TextContent, ImageContent, VideoContent];
+
+      for (const model of models) {
+        const content = await model.findById(contentId);
+
+        if (content) {
+          return content;
+        }
+      }
+      return null;
+    };
+
+    const populatedContents = [];
+
+    for (const contentId of targetPost.contents) {
+      const content = await fetchContentFromModels(contentId);
+
+      populatedContents.push(content);
+    }
+
+    const post = {
+      title: targetPost.title,
+      category: targetPost.category,
+      madeBy: targetPost.madeBy,
+      createdDate: targetPost.createdDate,
+      contents: populatedContents,
+    };
 
     res.status(200).json({ post });
   } catch (error) {

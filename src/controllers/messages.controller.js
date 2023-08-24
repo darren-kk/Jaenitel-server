@@ -66,15 +66,40 @@ exports.getMessage = async (req, res, next) => {
       return res.status(404).json({ error: "User Not Found" });
     }
 
-    const message = await Message.findById(messageId).populate("sendFrom").populate("sendTo").populate("contents");
+    const targetMessage = await Message.findById(messageId).populate("sendFrom");
 
-    if (!message) {
+    if (!targetMessage) {
       return res.status(404).json({ error: "Message Not Found" });
     }
 
-    message.read = true;
+    const fetchContentFromModels = async function (contentId) {
+      const models = [TextContent, ImageContent, VideoContent];
+      for (const model of models) {
+        const content = await model.findById(contentId);
+        if (content) {
+          return content;
+        }
+      }
+      return null;
+    };
 
-    await message.save();
+    const populatedContents = [];
+
+    for (const contentId of targetMessage.contents) {
+      const content = await fetchContentFromModels(contentId);
+
+      populatedContents.push(content);
+    }
+
+    targetMessage.read = true;
+
+    await targetMessage.save();
+
+    const message = {
+      sendFrom: targetMessage.sendFrom,
+      sendTo: targetMessage.sendTo,
+      contents: populatedContents,
+    };
 
     res.status(200).json({ message });
   } catch (error) {
@@ -90,7 +115,7 @@ exports.createMessage = async (req, res, next) => {
 
   try {
     const user = await User.findById(userId);
-    const sendTo = await User.find({ nickname: req.body.sendTo });
+    const sendTo = await User.findOne({ nickname: req.body.sendTo });
     const uploadPromises = [];
 
     if (!user) {
