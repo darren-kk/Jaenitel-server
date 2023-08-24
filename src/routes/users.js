@@ -6,19 +6,22 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-const postsController = require("../controllers/posts.controller");
+const postController = require("../controllers/posts.controller");
 const messageController = require("../controllers/messages.controller");
+const chatRoomController = require("../controllers/chatRoom.controller");
 
-router.get("/:userId/posts", postsController.getPosts);
-router.post("/:userId/posts", upload.any(), postsController.createPost);
+router.get("/:userId/posts", postController.getPosts);
+router.post("/:userId/posts", upload.any(), postController.createPost);
 
-router.get("/:userId/posts/:postId", postsController.getPost);
-router.put("/:userId/posts/:postId", upload.any(), postsController.editPost);
-router.delete("/:userId/posts/:postId", postsController.deletePost);
+router.get("/:userId/posts/:postId", postController.getPost);
+router.put("/:userId/posts/:postId", upload.any(), postController.editPost);
+router.delete("/:userId/posts/:postId", postController.deletePost);
 
 router.get("/:userId/messages", messageController.getMessages);
 router.post("/:userId/messages", upload.any(), messageController.createMessage);
 
 router.get("/:userId/messages/:messageId", messageController.getMessage);
+
+router.get("/:userId/chat-rooms", chatRoomController.getChatRooms);
 
 module.exports = router;
