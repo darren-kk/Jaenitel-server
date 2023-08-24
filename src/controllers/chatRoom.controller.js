@@ -55,3 +55,29 @@ exports.getChatRooms = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getChatRoom = async (req, res, next) => {
+  const { userId, roomId } = req.params;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User Not Found" });
+    }
+
+    const chatRoom = await ChatRoom.findById(roomId).populate({
+      path: "chats",
+      model: "Chat",
+      populate: {
+        path: "writer",
+        model: "User",
+      },
+    });
+
+    res.status(200).json({ chatRoom });
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};

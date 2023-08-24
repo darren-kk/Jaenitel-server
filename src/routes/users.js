@@ -24,4 +24,6 @@ router.get("/:userId/messages/:messageId", messageController.getMessage);
 
 router.get("/:userId/chat-rooms", chatRoomController.getChatRooms);
 
+router.get("/:userId/chat-rooms/:roomId", chatRoomController.getChatRoom);
+
 module.exports = router;
