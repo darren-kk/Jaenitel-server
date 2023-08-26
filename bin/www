@@ -15,7 +15,7 @@ const io = socketIo(server, {
   },
 });
 
-const { createChat, addChatRoomUser, removeChatRoomUser } = require("../src/utils/createChat");
+const { createChat, addChatRoomUser, removeChatRoomUser, handleSocketError } = require("../src/utils/createChat");
 
 server.listen(port);
 server.on("error", onError);
@@ -25,35 +25,47 @@ io.on("connection", (socket) => {
   console.log("User connected");
 
   socket.on("join-room", async (data) => {
-    socket.join(data.roomId);
+    try {
+      socket.join(data.roomId);
 
-    await addChatRoomUser(data);
+      await addChatRoomUser(data);
 
-    const newChat = await createChat(data);
+      const newChat = await createChat(data);
 
-    await newChat.populate("writer");
+      await newChat.populate("writer");
 
-    io.to(data.roomId).emit("user-joined", newChat);
+      io.to(data.roomId).emit("user-joined", newChat);
+    } catch (error) {
+      handleSocketError(socket, error);
+    }
   });
 
   socket.on("send-chat", async (data) => {
-    const newChat = await createChat(data);
+    try {
+      const newChat = await createChat(data);
 
-    await newChat.populate("writer");
+      await newChat.populate("writer");
 
-    io.to(data.roomId).emit("new-chat", newChat);
+      io.to(data.roomId).emit("new-chat", newChat);
+    } catch (error) {
+      handleSocketError(socket, error);
+    }
   });
 
   socket.on("leave-room", async (data) => {
-    socket.leave(data.roomId);
+    try {
+      socket.leave(data.roomId);
 
-    await removeChatRoomUser(data);
+      await removeChatRoomUser(data);
 
-    const newChat = await createChat(data);
+      const newChat = await createChat(data);
 
-    await newChat.populate("writer");
+      await newChat.populate("writer");
 
-    io.to(data.roomId).emit("user-left", newChat);
+      io.to(data.roomId).emit("user-left", newChat);
+    } catch (error) {
+      handleSocketError(socket, error);
+    }
   });
 
   socket.on("disconnect", () => {

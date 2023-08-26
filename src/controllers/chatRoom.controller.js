@@ -1,5 +1,3 @@
-const { getS3Client, getDeleteObjectCommand, getPutObjectCommand } = require("../configs/s3Config");
-
 const User = require("../models/User");
 const Chat = require("../models/Chat");
 const ChatRoom = require("../models/ChatRoom");
