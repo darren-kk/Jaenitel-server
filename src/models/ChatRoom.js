@@ -21,10 +21,12 @@ const chatRoomSchema = new Schema({
       ref: "Chat",
     },
   ],
-  public: {
-    type: Boolean,
-    default: true,
-  },
+  users: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
 });
 
 const ChatRoom = mongoose.model("ChatRoom", chatRoomSchema);

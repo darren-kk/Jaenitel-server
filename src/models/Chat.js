@@ -11,6 +11,10 @@ const chatSchema = new Schema({
     type: String,
     required: true,
   },
+  isSystem: {
+    type: Boolean,
+    default: false,
+  },
   createdDate: {
     type: Date,
     default: Date.now,
