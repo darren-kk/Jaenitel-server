@@ -20,6 +20,7 @@ exports.getChatRooms = async (req, res, next) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const totalChatRooms = await ChatRoom.countDocuments();
     const chatRooms = await ChatRoom.find()
+      .populate("users")
       .populate({
         path: "chats",
         model: "Chat",
@@ -32,22 +33,21 @@ exports.getChatRooms = async (req, res, next) => {
       .skip(skip)
       .limit(parseInt(limit));
 
-    console.log(chatRooms);
-
     const chatRoomsWithIndex = chatRooms.map((chatRoom, index) => {
       return {
         _id: chatRoom._id,
         title: chatRoom.title,
         madeBy: chatRoom.madeBy,
         createdDate: chatRoom.createdDate,
-        chats: chatRoom.chats,
+        users: chatRoom.users,
         index: totalChatRooms - (skip + index),
       };
     });
 
     res.status(200).json({
       chatRooms: chatRoomsWithIndex,
-      totalChatRooms: Math.ceil(totalChatRooms / parseInt(limit)),
+      totalChatRooms: totalChatRooms,
+      totalPages: Math.ceil(totalChatRooms / parseInt(limit)),
       currentPage: parseInt(page),
     });
   } catch (error) {
@@ -66,14 +66,20 @@ exports.getChatRoom = async (req, res, next) => {
       return res.status(404).json({ error: "User Not Found" });
     }
 
-    const chatRoom = await ChatRoom.findById(roomId).populate({
-      path: "chats",
-      model: "Chat",
-      populate: {
-        path: "writer",
-        model: "User",
-      },
-    });
+    const chatRoom = await ChatRoom.findById(roomId)
+      .populate("users")
+      .populate({
+        path: "chats",
+        model: "Chat",
+        populate: {
+          path: "writer",
+          model: "User",
+        },
+      });
+
+    if (!chatRoom) {
+      return res.status(404).json({ error: "Room Not Found" });
+    }
 
     res.status(200).json({ chatRoom });
   } catch (error) {
