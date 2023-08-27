@@ -2,8 +2,6 @@ const User = require("../models/User");
 const Chat = require("../models/Chat");
 const ChatRoom = require("../models/ChatRoom");
 
-const CONFIG = require("../configs/index");
-
 exports.getChatRooms = async (req, res, next) => {
   const { userId } = req.params;
   const { page, limit } = req.query;
