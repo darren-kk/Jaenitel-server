@@ -118,3 +118,34 @@ exports.createChatRoom = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.deleteChatRoom = async (req, res, next) => {
+  const { userId, roomId } = req.params;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User Not Found" });
+    }
+
+    const chatRoom = await ChatRoom.findById(roomId);
+
+    if (!chatRoom) {
+      return res.status(404).json({ error: "ChatRoom Not Found" });
+    }
+
+    await Promise.all(
+      chatRoom.chats.map(async (chat) => {
+        await Chat.findByIdAndDelete(chat);
+      }),
+    );
+
+    await ChatRoom.findByIdAndDelete(roomId);
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
