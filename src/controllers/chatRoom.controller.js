@@ -85,3 +85,36 @@ exports.getChatRoom = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.createChatRoom = async (req, res, next) => {
+  const { userId } = req.params;
+  const title = req.body.title;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User Not Found" });
+    }
+
+    const existingChatRoom = await ChatRoom.findOne({ title: title });
+
+    if (existingChatRoom) {
+      return res.status(400).json({ message: "이미 해당 이름을 가진 대화방이 존재합니다." });
+    }
+
+    const chatRoom = new ChatRoom({
+      title: title,
+      madeBy: user._id,
+    });
+
+    const totalChatRooms = await ChatRoom.countDocuments();
+
+    await chatRoom.save();
+
+    res.status(201).json({ chatRoom, totalChatRooms });
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};

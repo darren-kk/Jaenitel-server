@@ -87,6 +87,7 @@ exports.getPost = async (req, res, next) => {
     }
 
     const post = {
+      _id: targetPost._id,
       title: targetPost.title,
       category: targetPost.category,
       madeBy: targetPost.madeBy,

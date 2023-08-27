@@ -23,6 +23,7 @@ router.post("/:userId/messages", upload.any(), messageController.createMessage);
 router.get("/:userId/messages/:messageId", messageController.getMessage);
 
 router.get("/:userId/chat-rooms", chatRoomController.getChatRooms);
+router.post("/:userId/chat-rooms", chatRoomController.createChatRoom);
 
 router.get("/:userId/chat-rooms/:roomId", chatRoomController.getChatRoom);
 
