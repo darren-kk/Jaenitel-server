@@ -7,6 +7,13 @@ async function validateLogin(req, res, next) {
 
   try {
     const user = await Users.findOne({ email: email });
+
+    if (!user) {
+      const error = new Error("존재하지 않는 사용자 입니다.");
+      error.status = 400;
+      throw error;
+    }
+
     const userPwd = user.password;
     const match = await bcrypt.compare(password, userPwd);
 
@@ -16,14 +23,8 @@ async function validateLogin(req, res, next) {
       throw error;
     }
 
-    if (!password) {
+    if (!password || !userPwd) {
       const error = new Error("비밀번호를 입력해주세요!");
-      error.status = 400;
-      throw error;
-    }
-
-    if (!user) {
-      const error = new Error("존재하지 않는 사용자 입니다.");
       error.status = 400;
       throw error;
     }

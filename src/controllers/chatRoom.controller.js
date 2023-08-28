@@ -10,7 +10,10 @@ exports.getChatRooms = async (req, res, next) => {
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({ error: "User Not Found" });
+      const error = new Error("존재하지 않는 사용자 입니다.");
+      error.status = 404;
+
+      next(error);
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -47,7 +50,8 @@ exports.getChatRooms = async (req, res, next) => {
       currentPage: parseInt(page),
     });
   } catch (error) {
-    console.log(error);
+    error.status = 500;
+    error.message = "Internal Server Error";
     next(error);
   }
 };
@@ -59,7 +63,10 @@ exports.getChatRoom = async (req, res, next) => {
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({ error: "User Not Found" });
+      const error = new Error("존재하지 않는 사용자 입니다.");
+      error.status = 404;
+
+      next(error);
     }
 
     const chatRoom = await ChatRoom.findById(roomId)
@@ -74,12 +81,16 @@ exports.getChatRoom = async (req, res, next) => {
       });
 
     if (!chatRoom) {
-      return res.status(404).json({ error: "Room Not Found" });
+      const error = new Error("존재하지 않는 대화방 입니다.");
+      error.status = 404;
+
+      next(error);
     }
 
     res.status(200).json({ chatRoom });
   } catch (error) {
-    console.log(error);
+    error.status = 500;
+    error.message = "Internal Server Error";
     next(error);
   }
 };
@@ -92,13 +103,19 @@ exports.createChatRoom = async (req, res, next) => {
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({ error: "User Not Found" });
+      const error = new Error("존재하지 않는 사용자 입니다.");
+      error.status = 404;
+
+      next(error);
     }
 
     const existingChatRoom = await ChatRoom.findOne({ title: title });
 
     if (existingChatRoom) {
-      return res.status(400).json({ message: "이미 해당 이름을 가진 대화방이 존재합니다." });
+      const error = new Error("이미 해당 이름을 가진 대화방이 존재합니다.");
+      error.status = 400;
+
+      next(error);
     }
 
     const chatRoom = new ChatRoom({
@@ -112,7 +129,8 @@ exports.createChatRoom = async (req, res, next) => {
 
     res.status(201).json({ chatRoom, totalChatRooms });
   } catch (error) {
-    console.log(error);
+    error.status = 500;
+    error.message = "Internal Server Error";
     next(error);
   }
 };
@@ -124,13 +142,19 @@ exports.deleteChatRoom = async (req, res, next) => {
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({ error: "User Not Found" });
+      const error = new Error("존재하지 않는 사용자 입니다.");
+      error.status = 404;
+
+      next(error);
     }
 
     const chatRoom = await ChatRoom.findById(roomId);
 
     if (!chatRoom) {
-      return res.status(404).json({ error: "ChatRoom Not Found" });
+      const error = new Error("존재하지 않는 대화방 입니다.");
+      error.status = 404;
+
+      next(error);
     }
 
     await Promise.all(
@@ -143,7 +167,9 @@ exports.deleteChatRoom = async (req, res, next) => {
 
     res.status(200).json({ success: true });
   } catch (error) {
-    console.log(error);
+    error.status = 500;
+    error.message = "Internal Server Error";
+
     next(error);
   }
 };

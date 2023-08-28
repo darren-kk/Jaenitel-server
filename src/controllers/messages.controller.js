@@ -15,7 +15,10 @@ exports.getMessages = async (req, res, next) => {
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({ error: "User Not Found" });
+      const error = new Error("존재하지 않는 사용자 입니다.");
+      error.status = 404;
+
+      next(error);
     }
 
     const sendedMessagesToMap = await Message.find({ sendFrom: user._id })
@@ -51,7 +54,9 @@ exports.getMessages = async (req, res, next) => {
 
     res.status(200).json({ messages });
   } catch (error) {
-    console.log(error);
+    error.status = 500;
+    error.message = "Internal Server Error";
+
     next(error);
   }
 };
@@ -63,13 +68,19 @@ exports.getMessage = async (req, res, next) => {
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({ error: "User Not Found" });
+      const error = new Error("존재하지 않는 사용자 입니다.");
+      error.status = 404;
+
+      next(error);
     }
 
     const targetMessage = await Message.findById(messageId).populate("sendFrom");
 
     if (!targetMessage) {
-      return res.status(404).json({ error: "Message Not Found" });
+      const error = new Error("쪽지가 존재하지 않습니다!");
+      error.status = 404;
+
+      next(error);
     }
 
     const fetchContentFromModels = async function (contentId) {
@@ -103,7 +114,9 @@ exports.getMessage = async (req, res, next) => {
 
     res.status(200).json({ message });
   } catch (error) {
-    console.log(error);
+    error.status = 500;
+    error.message = "Internal Server Error";
+
     next(error);
   }
 };
@@ -119,11 +132,17 @@ exports.createMessage = async (req, res, next) => {
     const uploadPromises = [];
 
     if (!user) {
-      return res.status(404).json({ error: "User Not Found" });
+      const error = new Error("존재하지 않는 사용자 입니다.");
+      error.status = 404;
+
+      next(error);
     }
 
     if (!sendTo) {
-      return res.status(404).json({ error: "Receiver Not Found" });
+      const error = new Error("해당 닉네임의 사용자가 존재하지 않습니다.");
+      error.status = 404;
+
+      next(error);
     }
 
     for (const file of req.files) {
@@ -202,6 +221,9 @@ exports.createMessage = async (req, res, next) => {
 
     res.status(201).json({ success: true });
   } catch (error) {
+    error.status = 500;
+    error.message = "Internal Server Error";
+
     next(error);
   }
 };

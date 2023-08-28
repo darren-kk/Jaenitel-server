@@ -16,7 +16,10 @@ exports.getPosts = async (req, res, next) => {
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({ error: "User Not Found" });
+      const error = new Error("존재하지 않는 사용자 입니다.");
+      error.status = 404;
+
+      next(error);
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -44,7 +47,9 @@ exports.getPosts = async (req, res, next) => {
       currentPage: parseInt(page),
     });
   } catch (error) {
-    console.log(error);
+    error.status = 500;
+    error.message = "Internal Server Error";
+
     next(error);
   }
 };
@@ -56,13 +61,19 @@ exports.getPost = async (req, res, next) => {
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({ error: "User Not Found" });
+      const error = new Error("존재하지 않는 사용자 입니다.");
+      error.status = 404;
+
+      next(error);
     }
 
     const targetPost = await Post.findById(postId).populate("madeBy");
 
     if (!targetPost) {
-      return res.status(404).json({ error: "Post Not Found" });
+      const error = new Error("존재하지 않는 게시글 입니다.");
+      error.status = 404;
+
+      next(error);
     }
 
     const fetchContentFromModels = async function (contentId) {
@@ -97,6 +108,9 @@ exports.getPost = async (req, res, next) => {
 
     res.status(200).json({ post });
   } catch (error) {
+    error.status = 500;
+    error.message = "Internal Server Error";
+
     next(error);
   }
 };
@@ -111,7 +125,10 @@ exports.createPost = async (req, res, next) => {
     const uploadPromises = [];
 
     if (!user) {
-      return res.status(404).json({ error: "User Not Found" });
+      const error = new Error("존재하지 않는 사용자 입니다.");
+      error.status = 404;
+
+      next(error);
     }
 
     for (const file of req.files) {
@@ -184,6 +201,9 @@ exports.createPost = async (req, res, next) => {
 
     res.status(201).json({ success: true });
   } catch (error) {
+    error.status = 500;
+    error.message = "Internal Server Error";
+
     next(error);
   }
 };
@@ -198,15 +218,24 @@ exports.editPost = async (req, res, next) => {
     const post = await Post.findById(postId).populate("contents");
 
     if (!user) {
-      return res.status(404).json({ error: "User Not Found" });
+      const error = new Error("존재하지 않는 사용자 입니다.");
+      error.status = 404;
+
+      next(error);
     }
 
     if (!post) {
-      return res.status(404).json({ error: "Post Not Found" });
+      const error = new Error("존재하지 않는 게시글 입니다.");
+      error.status = 404;
+
+      next(error);
     }
 
     if (user._id.toString() !== post.madeBy.toString()) {
-      return res.status(400).json({ error: "수정 권한이 없습니다!" });
+      const error = new Error("수정 권한이 없습니다!");
+      error.status = 404;
+
+      next(error);
     }
 
     const contents = req.body.contents;
@@ -325,6 +354,9 @@ exports.editPost = async (req, res, next) => {
 
     res.status(200).json({ succes: true });
   } catch (error) {
+    error.status = 500;
+    error.message = "Internal Server Error";
+
     next(error);
   }
 };
@@ -338,11 +370,17 @@ exports.deletePost = async (req, res, next) => {
     const post = await Post.findById(postId).populate("contents");
 
     if (!user) {
-      return res.status(404).json({ error: "User Not Found" });
+      const error = new Error("존재하지 않는 사용자 입니다.");
+      error.status = 404;
+
+      next(error);
     }
 
     if (!post) {
-      return res.status(404).json({ error: "Post Not Found" });
+      const error = new Error("존재하지 않는 게시글 입니다.");
+      error.status = 404;
+
+      next(error);
     }
 
     await Promise.all(
@@ -371,6 +409,9 @@ exports.deletePost = async (req, res, next) => {
 
     res.status(200).json({ success: true });
   } catch (error) {
+    error.status = 500;
+    error.message = "Internal Server Error";
+
     next(error);
   }
 };
