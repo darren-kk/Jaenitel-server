@@ -2,6 +2,8 @@ const express = require("express");
 
 const router = express.Router();
 
-router.get("/", async function (req, res, next) {
-  res.send("intial");
+router.get("/", function (req, res, next) {
+  res.status(200).send("success");
 });
+
+module.exports = router;
