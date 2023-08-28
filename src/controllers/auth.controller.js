@@ -4,6 +4,17 @@ const jwt = require("jsonwebtoken");
 const Users = require("../models/User");
 const CONFIG = require("../configs/index");
 
+exports.checkUser = async function (req, res, next) {
+  if (!req.user) {
+    const error = new Error("사용자 인증에 실패 하였습니다! 다시 로그인 해주세요.");
+    error.status = 404;
+
+    next(error);
+  }
+
+  res.status(200).json({ success: true, user: req.user });
+};
+
 exports.login = async function (req, res, next) {
   const { email } = req.body;
 

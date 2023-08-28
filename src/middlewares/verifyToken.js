@@ -22,6 +22,8 @@ async function verifyToken(req, res, next) {
       throw error;
     }
 
+    req.user = user;
+
     next();
   } catch (error) {
     next(error);
