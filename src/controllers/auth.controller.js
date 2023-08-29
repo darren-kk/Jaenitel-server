@@ -24,6 +24,8 @@ exports.login = async function (req, res, next) {
 
     res.cookie("AccessToken", token, {
       httpOnly: true,
+      secure: true,
+      sameSite: "None",
     });
 
     res.status(201).json({ user });
