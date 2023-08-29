@@ -28,6 +28,7 @@ exports.login = async function (req, res, next) {
 
     res.status(201).json({ user });
   } catch (error) {
+    console.log(error);
     error.status = 500;
     error.message = "Internal Server Error";
     next(error);

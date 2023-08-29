@@ -10,22 +10,24 @@ const postController = require("../controllers/posts.controller");
 const messageController = require("../controllers/messages.controller");
 const chatRoomController = require("../controllers/chatRoom.controller");
 
-router.get("/:userId/posts", postController.getPosts);
-router.post("/:userId/posts", upload.any(), postController.createPost);
+const verifyToken = require("../middlewares/verifyToken");
 
-router.get("/:userId/posts/:postId", postController.getPost);
-router.put("/:userId/posts/:postId", upload.any(), postController.editPost);
-router.delete("/:userId/posts/:postId", postController.deletePost);
+router.get("/:userId/posts", verifyToken, postController.getPosts);
+router.post("/:userId/posts", verifyToken, upload.any(), postController.createPost);
 
-router.get("/:userId/messages", messageController.getMessages);
-router.post("/:userId/messages", upload.any(), messageController.createMessage);
+router.get("/:userId/posts/:postId", verifyToken, postController.getPost);
+router.put("/:userId/posts/:postId", verifyToken, upload.any(), postController.editPost);
+router.delete("/:userId/posts/:postId", verifyToken, postController.deletePost);
 
-router.get("/:userId/messages/:messageId", messageController.getMessage);
+router.get("/:userId/messages", verifyToken, messageController.getMessages);
+router.post("/:userId/messages", verifyToken, upload.any(), messageController.createMessage);
 
-router.get("/:userId/chat-rooms", chatRoomController.getChatRooms);
-router.post("/:userId/chat-rooms", chatRoomController.createChatRoom);
+router.get("/:userId/messages/:messageId", verifyToken, messageController.getMessage);
 
-router.get("/:userId/chat-rooms/:roomId", chatRoomController.getChatRoom);
-router.delete("/:userId/chat-rooms/:roomId", chatRoomController.deleteChatRoom);
+router.get("/:userId/chat-rooms", verifyToken, chatRoomController.getChatRooms);
+router.post("/:userId/chat-rooms", verifyToken, chatRoomController.createChatRoom);
+
+router.get("/:userId/chat-rooms/:roomId", verifyToken, chatRoomController.getChatRoom);
+router.delete("/:userId/chat-rooms/:roomId", verifyToken, chatRoomController.deleteChatRoom);
 
 module.exports = router;
