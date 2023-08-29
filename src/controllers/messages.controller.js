@@ -6,6 +6,8 @@ const TextContent = require("../models/TextContent");
 const ImageContent = require("../models/ImageContent");
 const VideoContent = require("../models/VideoContent");
 
+const getContentType = require("../utils/getContentType");
+
 const CONFIG = require("../configs/index");
 
 exports.getMessages = async (req, res, next) => {
@@ -150,27 +152,26 @@ exports.createMessage = async (req, res, next) => {
       const match = file.fieldname.match(indexPattern);
       const index = match ? parseInt(match[1], 10) : -1;
 
-      if (file.fieldname.includes("imageContent")) {
-        const id = new Date().toISOString();
-        const fileName = `messages/${user._id}/${id}.png`;
-        const putObjectCommand = getPutObjectCommand(CONFIG.AWS_S3_BUCKET_NAME, fileName, file.buffer, "image/png");
-        const url = `https://${CONFIG.AWS_S3_BUCKET_NAME}.s3.${CONFIG.AWS_S3_REGION}.amazonaws.com/${fileName}`;
-        const uploadPromise = s3Client.send(putObjectCommand);
+      const { contentType, extension } = getContentType(file.originalname) || {};
 
-        uploadPromises.push(uploadPromise);
+      if (!contentType || !extension) {
+        const error = new Error(`지원하지 않는 파일 확장자입니다.: ${file.originalname}`);
+        error.status = 404;
 
-        contents[index] = { imageContent: url };
+        next(error);
       }
 
-      if (file.fieldname.includes("videoContent")) {
-        const id = new Date().toISOString();
-        const fileName = `messages/${user._id}/${id}.mp4`;
-        const putObjectCommand = getPutObjectCommand(CONFIG.AWS_S3_BUCKET_NAME, fileName, file.buffer, "video/mp4");
-        const url = `https://${CONFIG.AWS_S3_BUCKET_NAME}.s3.${CONFIG.AWS_S3_REGION}.amazonaws.com/${fileName}`;
-        const uploadPromise = s3Client.send(putObjectCommand);
+      const id = new Date().toISOString();
+      const fileName = `messages/${user._id}/${id}${extension}`;
+      const putObjectCommand = getPutObjectCommand(CONFIG.AWS_S3_BUCKET_NAME, fileName, file.buffer, contentType);
+      const url = `https://${CONFIG.AWS_S3_BUCKET_NAME}.s3.${CONFIG.AWS_S3_REGION}.amazonaws.com/${fileName}`;
+      const uploadPromise = s3Client.send(putObjectCommand);
 
-        uploadPromises.push(uploadPromise);
+      uploadPromises.push(uploadPromise);
 
+      if (contentType.startsWith("image/")) {
+        contents[index] = { imageContent: url };
+      } else if (contentType.startsWith("video/")) {
         contents[index] = { videoContent: url };
       }
     }
