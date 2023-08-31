@@ -28,6 +28,7 @@ router.get("/:userId/chat-rooms", verifyToken, chatRoomController.getChatRooms);
 router.post("/:userId/chat-rooms", verifyToken, chatRoomController.createChatRoom);
 
 router.get("/:userId/chat-rooms/:roomId", verifyToken, chatRoomController.getChatRoom);
+router.post("/:userId/chat-rooms/:roomId", verifyToken, chatRoomController.createChat);
 router.delete("/:userId/chat-rooms/:roomId", verifyToken, chatRoomController.deleteChatRoom);
 
 module.exports = router;

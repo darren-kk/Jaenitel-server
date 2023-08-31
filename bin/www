@@ -40,13 +40,9 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("send-chat", async (data) => {
+  socket.on("send-chat", (data) => {
     try {
-      const newChat = await createChat(data);
-
-      await newChat.populate("writer");
-
-      io.to(data.roomId).emit("new-chat", newChat);
+      io.to(data.roomId).emit("new-chat", data);
     } catch (error) {
       handleSocketError(socket, error);
     }

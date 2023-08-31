@@ -173,3 +173,47 @@ exports.deleteChatRoom = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.createChat = async (req, res, next) => {
+  const { userId, roomId } = req.params;
+  const chat = req.body.newChat;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      const error = new Error("존재하지 않는 사용자 입니다.");
+      error.status = 404;
+
+      next(error);
+    }
+
+    const chatRoom = await ChatRoom.findById(roomId);
+
+    if (!chatRoom) {
+      const error = new Error("존재하지 않는 대화방 입니다.");
+      error.status = 404;
+
+      next(error);
+    }
+
+    const newChat = new Chat({
+      writer: chat.writer._id,
+      content: chat.content,
+      isSystem: chat.isSystem,
+    });
+
+    await newChat.save();
+
+    chatRoom.chats.push(newChat._id);
+
+    await chatRoom.save();
+
+    res.status(201).json({ success: true });
+  } catch (error) {
+    error.status = 500;
+    error.message = "Internal Server Error";
+
+    next(error);
+  }
+};
