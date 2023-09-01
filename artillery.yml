@@ -3,10 +3,10 @@ config:
   socketio:
     transports: ["websocket"]
   phases:
-    - duration: 120 # Increasing test duration to 2 minutes
-      arrivalRate: 10 # Starting with 10 users per second
-      rampTo: 50 # Gradually ramp up to 50 users per second over the test duration
-    - duration: 180 # Additional 3 minutes at 50 users per second
+    - duration: 120
+      arrivalRate: 10
+      rampTo: 50
+    - duration: 180
       arrivalRate: 50
 
 scenarios:
@@ -17,7 +17,7 @@ scenarios:
           data:
             roomId: "Room123"
             message: "Joined Room123"
-      - loop: # Users will send 5 messages before leaving
+      - loop:
           - emit:
               channel: "send-chat"
               data:
