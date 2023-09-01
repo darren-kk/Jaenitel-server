@@ -1,0 +1,33 @@
+config:
+  target: "http://localhost:3000"
+  socketio:
+    transports: ["websocket"]
+  phases:
+    - duration: 120 # Increasing test duration to 2 minutes
+      arrivalRate: 10 # Starting with 10 users per second
+      rampTo: 50 # Gradually ramp up to 50 users per second over the test duration
+    - duration: 180 # Additional 3 minutes at 50 users per second
+      arrivalRate: 50
+
+scenarios:
+  - engine: "socketio"
+    flow:
+      - emit:
+          channel: "join-room"
+          data:
+            roomId: "Room123"
+            message: "Joined Room123"
+      - loop: # Users will send 5 messages before leaving
+          - emit:
+              channel: "send-chat"
+              data:
+                roomId: "Room123"
+                message: "Chatting in Room123"
+          - think: 1
+        count: 5
+
+      - emit:
+          channel: "leave-room"
+          data:
+            roomId: "Room123"
+            message: "Left Room123"

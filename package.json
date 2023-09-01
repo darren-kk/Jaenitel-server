@@ -27,6 +27,7 @@
     "socket.io": "^4.7.2"
   },
   "devDependencies": {
+    "artillery": "^2.0.0-36",
     "debug": "^4.3.4",
     "eslint": "^8.46.0",
     "eslint-config-prettier": "^9.0.0",
