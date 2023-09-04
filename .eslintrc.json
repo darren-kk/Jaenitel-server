@@ -4,6 +4,7 @@
     "es2021": true,
     "node": true
   },
+  "ignorePatterns": ["setup.js", "*.spec.js"],
   "extends": ["eslint:recommended", "plugin:prettier/recommended"],
   "parserOptions": {
     "ecmaVersion": "latest"
