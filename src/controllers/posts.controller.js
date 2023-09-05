@@ -352,7 +352,7 @@ exports.editPost = async (req, res, next) => {
       }),
     );
 
-    res.status(200).json({ succes: true });
+    res.status(200).json({ success: true });
   } catch (error) {
     error.status = 500;
     error.message = "Internal Server Error";
