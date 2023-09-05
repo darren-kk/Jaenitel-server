@@ -6,7 +6,8 @@
     "start": "node ./bin/www",
     "lint-staged": "lint-staged",
     "dev": "NODE_ENV=development nodemon ./bin/www",
-    "test": "jest"
+    "test": "jest",
+    "coverage": "jest --coverage"
   },
   "lint-staged": {
     "src/**/*.js": [
