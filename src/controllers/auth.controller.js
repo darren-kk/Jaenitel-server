@@ -10,6 +10,7 @@ exports.checkUser = async function (req, res, next) {
     error.status = 404;
 
     next(error);
+    return;
   }
 
   res.status(200).json({ success: true, user: req.user });
