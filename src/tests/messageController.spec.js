@@ -1,11 +1,10 @@
 const request = require("supertest");
 const app = require("../../app");
 const User = require("../models/User");
-const Post = require("../models/Post");
+const Message = require("../models/Message");
 const TextContent = require("../models/TextContent");
 const ImageContent = require("../models/ImageContent");
 const VideoContent = require("../models/VideoContent");
-const { getDeleteObjectCommand } = require("../configs/s3Config");
 const verifyToken = require("../middlewares/verifyToken");
 
 const mockFile = [
@@ -21,7 +20,7 @@ const mockFile = [
   },
 ];
 
-let mockRequestBody = { title: "Test Post", category: "Test Category", contents: [{ textContent: "Test" }] };
+let mockRequestBody;
 
 jest.mock("multer", () => {
   const multer = () => ({
@@ -47,21 +46,21 @@ jest.mock("../configs/s3Config", () => ({
 
 jest.mock("../middlewares/verifyToken");
 
-describe("Post Controller", () => {
+describe("Message Controller", () => {
   beforeEach(async () => {
     await User.deleteMany({});
-    await Post.deleteMany({});
+    await Message.deleteMany({});
     await TextContent.deleteMany({});
     await ImageContent.deleteMany({});
     await VideoContent.deleteMany({});
-    mockRequestBody = { title: "Test Post", category: "Test Category", contents: [{ textContent: "Test" }] };
+    mockRequestBody = { sendTo: "john", sendFrom: "darren", contents: [{ textContent: "Test" }] };
   });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  test("should get posts", async () => {
+  test("should get messages", async () => {
     verifyToken.mockImplementation((req, res, next) => {
       req.user = {
         email: "test@gmail.com",
@@ -73,24 +72,26 @@ describe("Post Controller", () => {
     });
 
     const user = await User.create({ email: "test@gmail.com", password: "123456", nickname: "darren" });
-    await Post.create({
-      title: "testPost",
-      category: "test",
-      madeBy: user._id,
+    const sendTo = await User.create({ email: "test2@gmail.com", password: "123456", nickname: "john" });
+
+    await Message.create({
+      sendFrom: user._id,
+      sendTo: sendTo._id,
+      createdDate: "2023-08-29T19:35:25.530+00:00",
+    });
+    await Message.create({
+      sendFrom: sendTo._id,
+      sendTo: user._id,
       createdDate: "2023-08-29T19:35:25.530+00:00",
     });
 
-    const response = await request(app).get(`/users/${user._id}/posts`).query({
-      category: "test",
-      page: 1,
-      limit: 10,
-    });
+    const response = await request(app).get(`/users/${user._id}/messages`);
 
     expect(response.statusCode).toBe(200);
-    expect(response.body).toHaveProperty("posts");
+    expect(response.body).toHaveProperty("messages");
   });
 
-  test("should get a single post", async () => {
+  test("should get a single message", async () => {
     verifyToken.mockImplementation((req, res, next) => {
       req.user = {
         email: "test@gmail.com",
@@ -102,19 +103,21 @@ describe("Post Controller", () => {
     });
 
     const user = await User.create({ email: "test@gmail.com", password: "123456", nickname: "darren" });
-    const post = await Post.create({
-      title: "testPost",
-      madeBy: user._id,
+    const sendTo = await User.create({ email: "test2@gmail.com", password: "123456", nickname: "john" });
+
+    const message = await Message.create({
+      sendFrom: user._id,
+      sendTo: sendTo._id,
       createdDate: "2023-08-29T19:35:25.530+00:00",
     });
 
-    const response = await request(app).get(`/users/${user._id}/posts/${post._id}`);
+    const response = await request(app).get(`/users/${user._id}/messages/${message._id}`);
 
     expect(response.statusCode).toBe(200);
-    expect(response.body).toHaveProperty("post");
+    expect(response.body).toHaveProperty("message");
   });
 
-  test("should create a post", async () => {
+  test("should create a message", async () => {
     verifyToken.mockImplementation((req, res, next) => {
       req.user = {
         email: "test@gmail.com",
@@ -126,17 +129,19 @@ describe("Post Controller", () => {
     });
 
     const user = await User.create({ email: "test@gmail.com", password: "123456", nickname: "darren" });
-    const response = await request(app).post(`/users/${user._id}/posts`);
+    const sendTo = await User.create({ email: "test2@gmail.com", password: "123456", nickname: "john" });
+    const response = await request(app).post(`/users/${user._id}/messages`);
 
     expect(response.statusCode).toBe(201);
     expect(response.body.success).toBe(true);
 
-    const post = await Post.findOne({ title: "Test Post" });
-    expect(post).not.toBeNull();
+    const message = await Message.findOne({ sendFrom: user._id });
+    expect(message).not.toBeNull();
 
-    expect(post.contents).toHaveLength(3);
+    expect(message.contents).toHaveLength(3);
   });
-  test("should handle errors when creating a post", async () => {
+
+  test("should handle errors when creating a message without sendTo", async () => {
     verifyToken.mockImplementation((req, res, next) => {
       req.user = {
         email: "test@gmail.com",
@@ -147,45 +152,31 @@ describe("Post Controller", () => {
       next();
     });
 
-    mockRequestBody = {};
+    const user = await User.create({ email: "test@gmail.com", password: "123456", nickname: "darren" });
+    const response = await request(app).post(`/users/${user._id}/messages`);
+
+    expect(response.statusCode).toBe(404);
+    expect(JSON.parse(response.error.text).message).toBe("해당 닉네임의 사용자가 존재하지 않습니다.");
+  });
+
+  test("should handle errors when creating a message without sendTo", async () => {
+    verifyToken.mockImplementation((req, res, next) => {
+      req.user = {
+        email: "test@gmail.com",
+        password: "123456",
+        nickname: "darren",
+      };
+
+      next();
+    });
+
+    mockRequestBody = { sendTo: "john", sendFrom: "darren" };
 
     const user = await User.create({ email: "test@gmail.com", password: "123456", nickname: "darren" });
-    const response = await request(app).post(`/users/${user._id}/posts`);
+    const sendTo = await User.create({ email: "test2@gmail.com", password: "123456", nickname: "john" });
+    const response = await request(app).post(`/users/${user._id}/messages`);
 
     expect(response.statusCode).toBe(500);
     expect(JSON.parse(response.error.text).message).toBe("Internal Server Error");
-  });
-
-  test("should edit a post", async () => {
-    const user = await User.create({ email: "test@gmail.com", password: "123456", nickname: "darren" });
-    const post = await Post.create({
-      title: "testPost",
-      madeBy: user._id,
-      createdDate: "2023-08-29T19:35:25.530+00:00",
-    });
-
-    const response = await request(app).put(`/users/${user._id}/posts/${post._id}`).send({});
-
-    expect(response.statusCode).toBe(200);
-    expect(response.body.success).toBe(true);
-  });
-
-  test("should delete a post", async () => {
-    const user = await User.create({ email: "test@gmail.com", password: "123456", nickname: "darren" });
-    const imageContent = await ImageContent.create({ imageContent: "testImage.com" });
-    const videoContent = await VideoContent.create({ videoContent: "testVideo.com" });
-    const post = await Post.create({
-      title: "testPost",
-      madeBy: user._id,
-      createdDate: "2023-08-29T19:35:25.530+00:00",
-      contents: [imageContent._id, videoContent._id],
-      contentModel: ["TextContent", "ImageContent", "VideoContent"],
-    });
-
-    const response = await request(app).delete(`/users/${user._id}/posts/${post._id}`);
-
-    expect(getDeleteObjectCommand).toHaveBeenCalledTimes(2);
-    expect(response.statusCode).toBe(200);
-    expect(response.body.success).toBe(true);
   });
 });
