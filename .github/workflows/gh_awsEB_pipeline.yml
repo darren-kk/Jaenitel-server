@@ -38,6 +38,12 @@ jobs:
     needs: buildAndTest
     steps:
       - uses: actions/checkout@v2
+      - name: Create env file
+        run: |
+          touch .env
+          echo PORT=8081 >> .env
+          echo NODE_ENV=${{ secrets.NODE_ENV }} >> .env
+          cat .env
       - name: Install Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
